@@ -1,1 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Front Office — GM Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1b2a;
+    --paper: #f4ede0;
+    --paper-2: #ebe1cd;
+    --line: #2a3a4d;
+    --grass: #2d5a3d;
+    --grass-light: #4a7c5a;
+    --clay: #b85c3a;
+    --clay-dark: #8a3f24;
+    --gold: #c9a14a;
+    --warn: #d4a017;
+    --danger: #a8321e;
+    --good: #2d5a3d;
+    --muted: #5a4a3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 30%, rgba(184,92,58,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 85% 70%, rgba(45,90,61,0.08) 0%, transparent 45%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
+  /* HEADER — like a vintage scorecard top */
+  header {
+    border-bottom: 3px double var(--line);
+    padding: 28px 36px 20px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .logo {
+    width: 56px;
+    height: 56px;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -1px;
+    transform: rotate(-3deg);
+    border: 2px solid var(--gold);
+    box-shadow: 3px 3px 0 var(--clay);
+  }
+  .titles h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .titles .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+  .meta {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-transform: uppercase;
+  }
+  .meta .gm {
+    color: var(--ink);
+    font-weight: 500;
+    font-size: 13px;
+  }
+
+  /* TICKER — homestand strip */
+  .ticker {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 10px 36px;
+    display: flex;
+    gap: 36px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .ticker span { opacity: 0.85; }
+  .ticker .dot {
+    color: var(--gold);
+    margin: 0 4px;
+  }
+
+  /* MAIN */
+  main {
+    padding: 32px 36px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* SECTION HEADERS */
+  .section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--clay-dark);
+    margin: 36px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title:first-child { margin-top: 0; }
+  .section-title::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--clay);
+    transform: rotate(45deg);
+  }
+
+  /* KPI TILES — the "scoreboard" */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .kpi {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 18px 18px 16px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kpi:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .kpi .label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kpi .value {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .kpi .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+  .kpi .delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--danger); }
+  .kpi .status {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+  }
+  .status.green { background: var(--good); }
+  .status.yellow { background: var(--warn); }
+  .status.red { background: var(--danger); }
+  .kpi .dept {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--clay-dark);
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    text-transform: uppercase;
+  }
+
+  /* DEPARTMENT CARDS — the "lineup" */
+  .dept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .dept-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .dept-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--grass);
+  }
+  .dept-card.locked::before { background: var(--danger); }
+  .dept-card.warn::before { background: var(--warn); }
+  .dept-card h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .dept-card .lead {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .dept-card ul {
+    list-style: none;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .dept-card li {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px dotted rgba(42,58,77,0.2);
+  }
+  .dept-card li:last-child { border-bottom: none; }
+  .dept-card li .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .lock-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    background: var(--danger);
+    color: var(--paper);
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+
+  /* ATTENTION STRIP — alerts */
+  .alerts {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 20px 24px;
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  .alerts .head {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-right: 1px solid var(--gold);
+    padding-right: 24px;
+  }
+  .alerts ul { list-style: none; font-size: 13px; line-height: 1.8; }
+  .alerts li::before {
+    content: "▸";
+    color: var(--clay);
+    margin-right: 10px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 3px double var(--line);
+    margin-top: 48px;
+    padding: 20px 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .dept-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">3AM</div>
+    <div class="titles">
+      <h1>Front Office</h1>
+      <div class="sub">GM Command Center · Demo Club</div>
+    </div>
+  </div>
+  <div class="meta">
+    <div class="gm">GM: K. Bradley</div>
+    <div>Homestand 7 of 12</div>
+    <div>Sun · May 17 · 2026</div>
+  </div>
+</header>
+
+<div class="ticker">
+  <span>◆ Tonight 6:35 vs Hawks</span>
+  <span class="dot">●</span>
+  <span>Gates 5:30</span>
+  <span class="dot">●</span>
+  <span>Promo: Bobblehead Night (3,500 ct)</span>
+  <span class="dot">●</span>
+  <span>Forecast: Clear · 71°F</span>
+  <span class="dot">●</span>
+  <span>Adv. Sales: 4,210</span>
+</div>
+
+<main>
+
+  <div class="section-title">Top of the Order — Key Metrics</div>
+  <div class="kpi-grid">
+
+    <div class="kpi">
+      <span class="status green"></span>
+      <div class="label">Season Attendance</div>
+      <div class="value">142,860<span class="unit">fans</span></div>
+      <div class="delta up">▲ 8.3% vs LY pace</div>
+      <div class="dept">Box Office</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status yellow"></span>
+      <div class="label">Per Cap Spend</div>
+      <div class="value">$18.42</div>
+      <div class="delta down">▼ $0.74 vs target</div>
+      <div class="dept">Concessions</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status green"></span>
+      <div class="label">Sponsorship Sold</div>
+      <div class="value">87<span class="unit">%</span></div>
+      <div class="delta up">▲ 12 pts vs LY</div>
+      <div class="dept">Corporate Sales</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status red"></span>
+      <div class="label">Group Pipeline</div>
+      <div class="value">$84K</div>
+      <div class="delta down">▼ 22% vs goal</div>
+      <div class="dept">Group Sales</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status green"></span>
+      <div class="label">Net Promoter Score</div>
+      <div class="value">62</div>
+      <div class="delta up">▲ 4 pts MoM</div>
+      <div class="dept">Guest Services</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status yellow"></span>
+      <div class="label">Game Day Staffing</div>
+      <div class="value">94<span class="unit">%</span></div>
+      <div class="delta down">▼ 3% fill rate</div>
+      <div class="dept">Game Day Ops</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status green"></span>
+      <div class="label">Renewal Rate</div>
+      <div class="value">81<span class="unit">%</span></div>
+      <div class="delta up">▲ 6 pts vs LY</div>
+      <div class="dept">Season Tickets</div>
+    </div>
+
+    <div class="kpi">
+      <span class="status green"></span>
+      <div class="label">Field Condition</div>
+      <div class="value">A−</div>
+      <div class="delta up">No rainouts (21d)</div>
+      <div class="dept">Ground Crew</div>
+    </div>
+
+  </div>
+
+  <div class="section-title">The Lineup — Department Status</div>
+  <div class="dept-grid">
+
+    <div class="dept-card">
+      <h3>Box Office <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: T. Reyes</div>
+      <ul>
+        <li>Tonight advance <span class="v">4,210</span></li>
+        <li>Walk-up forecast <span class="v">~900</span></li>
+        <li>Season tix sold <span class="v">1,847</span></li>
+        <li>Dynamic price uplift <span class="v">+$1.12 avg</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card warn">
+      <h3>Concessions <span style="font-size:10px;color:var(--warn);">●</span></h3>
+      <div class="lead">Lead: M. Okafor · Sodexo</div>
+      <ul>
+        <li>Per cap (last 5) <span class="v">$18.42</span></li>
+        <li>Top SKU <span class="v">Loaded Nachos</span></li>
+        <li>Waste % <span class="v">6.8%</span></li>
+        <li>Avg line wait <span class="v">4:12</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Marketing <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: J. Whitaker</div>
+      <ul>
+        <li>Email open rate <span class="v">38%</span></li>
+        <li>Social reach (7d) <span class="v">142K</span></li>
+        <li>Active campaigns <span class="v">5</span></li>
+        <li>Promo lift (Bobble) <span class="v">+34%</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card locked">
+      <h3>Finance <span class="lock-tag">Locked</span></h3>
+      <div class="lead">GM · AGM · Controller only</div>
+      <ul>
+        <li>YTD Revenue <span class="v">●●●●●●</span></li>
+        <li>YTD Expense <span class="v">●●●●●●</span></li>
+        <li>EBITDA <span class="v">●●●●●●</span></li>
+        <li>Cash position <span class="v">●●●●●●</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Game Day Ops <span style="font-size:10px;color:var(--warn);">●</span></h3>
+      <div class="lead">Lead: D. Patel</div>
+      <ul>
+        <li>Staffing fill <span class="v">94%</span></li>
+        <li>Gate-to-seat <span class="v">7:30</span></li>
+        <li>Incidents (last hs) <span class="v">2 minor</span></li>
+        <li>Survey score <span class="v">4.4 / 5</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Ground Crew <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: B. Hollis</div>
+      <ul>
+        <li>Field grade <span class="v">A−</span></li>
+        <li>Prep time avg <span class="v">3:45</span></li>
+        <li>Rainouts YTD <span class="v">1</span></li>
+        <li>Mower service <span class="v">Due Tue</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Facilities <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: R. Castillo</div>
+      <ul>
+        <li>Open work orders <span class="v">11</span></li>
+        <li>PM compliance <span class="v">96%</span></li>
+        <li>Utility (MTD) <span class="v">$14.2K</span></li>
+        <li>Cap project <span class="v">LED Phase 2</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Guest Services <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: A. Nguyen</div>
+      <ul>
+        <li>NPS <span class="v">62</span></li>
+        <li>Complaint resolve <span class="v">14 min</span></li>
+        <li>ADA requests <span class="v">8 (all met)</span></li>
+        <li>Repeat visit rate <span class="v">47%</span></li>
+      </ul>
+    </div>
+
+    <div class="dept-card">
+      <h3>Promotions <span style="font-size:10px;color:var(--good);">●</span></h3>
+      <div class="lead">Lead: S. Park</div>
+      <ul>
+        <li>Activations (week) <span class="v">9 / 9</span></li>
+        <li>Giveaway inventory <span class="v">On hand</span></li>
+        <li>Sponsor satisfaction <span class="v">4.6 / 5</span></li>
+        <li>Next theme night <span class="v">Margaritaville</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="alerts">
+    <div class="head">Skipper's<br>Notes</div>
+    <ul>
+      <li>Group sales pipeline 22% behind plan — schedule pipeline review with S. Park this week</li>
+      <li>Concessions per cap softening — pull Sodexo data on slowest stand and consider menu test</li>
+      <li>Tuesday game day staff fill at 89% — usher coverage gap, sections 108–112</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  3AM Solutions · Front Office Platform · Prototype v0.1 · All metrics illustrative
+</footer>
+
+</body>
+</html>
